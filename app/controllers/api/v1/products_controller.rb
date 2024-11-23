@@ -11,7 +11,8 @@ module Api
         pagy, products = pagy(filtered_products, items: params[:per_page] || 10)
 
         render json: {
-          data: ActiveModelSerializers::SerializableResource.new(products).as_json,
+          data: ActiveModelSerializers::SerializableResource.new(products,
+                                                                 each_serializer: ProductCollectionSerializer).as_json,
           meta: pagy_metadata(pagy)
         }
       end

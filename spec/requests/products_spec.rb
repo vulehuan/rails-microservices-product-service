@@ -23,6 +23,10 @@ RSpec.describe 'Products API', type: :request do
         expect(response).to have_http_status(:ok)
       end
 
+      it "does not include description in the response" do
+        expect(json['data'].first).not_to have_key('description')
+      end
+
       it "does not include lock_version in the response" do
         expect(json['data'].first).not_to have_key('lock_version')
       end
@@ -76,6 +80,10 @@ RSpec.describe 'Products API', type: :request do
 
       it "does not include lock_version in the response" do
         expect(json['data']).not_to have_key('lock_version')
+      end
+
+      it "includes description in the response" do
+        expect(json['data']).to have_key('description')
       end
     end
 
