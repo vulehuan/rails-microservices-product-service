@@ -10,7 +10,7 @@ module Api
         authorize! :read, Category
         pagy, categories = pagy(Category.accessible_by(current_ability), items: params[:per_page] || 10)
         render json: {
-          data: categories,
+          data: ActiveModelSerializers::SerializableResource.new(categories).as_json,
           meta: pagy_metadata(pagy)
         }, status: :ok
       end
@@ -18,7 +18,7 @@ module Api
       # GET /api/v1/categories/:id
       def show
         authorize! :read, @category
-        render json: { data: @category }, status: :ok
+        render json: { data: ActiveModelSerializers::SerializableResource.new(@category).as_json }, status: :ok
       end
 
       # POST /api/v1/categories
@@ -27,7 +27,8 @@ module Api
         category = Category.new(category_params)
         raise ActiveRecord::RecordInvalid unless category.save
 
-        render json: { message: 'Category created successfully', data: category }, status: :created
+        render json: { message: 'Category created successfully',
+                       data: ActiveModelSerializers::SerializableResource.new(category).as_json }, status: :created
       end
 
       # PUT /api/v1/categories/:id
@@ -35,7 +36,8 @@ module Api
         authorize! :update, @category
         raise ActiveRecord::RecordInvalid unless @category.update(category_params)
 
-        render json: { message: 'Category updated successfully', data: @category }, status: :ok
+        render json: { message: 'Category updated successfully',
+                       data: ActiveModelSerializers::SerializableResource.new(@category).as_json }, status: :ok
       end
 
       # DELETE /api/v1/categories/:id

@@ -11,7 +11,7 @@ module Api
         pagy, products = pagy(filtered_products, items: params[:per_page] || 10)
 
         render json: {
-          data: products,
+          data: ActiveModelSerializers::SerializableResource.new(products).as_json,
           meta: pagy_metadata(pagy)
         }
       end
@@ -19,7 +19,7 @@ module Api
       # GET /api/v1/products/:id
       def show
         authorize! :read, @product
-        render json: { data: @product }, status: :ok
+        render json: { data: ActiveModelSerializers::SerializableResource.new(@product).as_json }, status: :ok
       end
 
       # POST /api/v1/products
@@ -28,7 +28,8 @@ module Api
         product = Product.new(product_params)
         raise ActiveRecord::RecordInvalid unless product.save
 
-        render json: { message: 'Product created successfully', data: product }, status: :created
+        render json: { message: 'Product created successfully',
+                       data: ActiveModelSerializers::SerializableResource.new(product).as_json }, status: :created
       end
 
       # PUT/PATCH /api/v1/products/:id
@@ -36,7 +37,8 @@ module Api
         authorize! :update, @product
         raise ActiveRecord::RecordInvalid unless @product.update(product_params)
 
-        render json: { message: 'Product updated successfully', data: @product }, status: :ok
+        render json: { message: 'Product updated successfully',
+                       data: ActiveModelSerializers::SerializableResource.new(@product).as_json }, status: :ok
       end
 
       # DELETE /api/v1/products/:id

@@ -22,6 +22,10 @@ RSpec.describe 'Products API', type: :request do
         expect(json['meta']).to include('page', 'count', 'pages')
         expect(response).to have_http_status(:ok)
       end
+
+      it "does not include lock_version in the response" do
+        expect(json['data'].first).not_to have_key('lock_version')
+      end
     end
 
     context 'when fetching a specific page' do
@@ -68,6 +72,10 @@ RSpec.describe 'Products API', type: :request do
         expect(json['data']['name']).to eq(@products.first.name)
         expect(json['data']['category_id']).to eq(@products.first.category_id)
         expect(response).to have_http_status(:ok)
+      end
+
+      it "does not include lock_version in the response" do
+        expect(json['data']).not_to have_key('lock_version')
       end
     end
 
