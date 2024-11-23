@@ -2,6 +2,30 @@ class ApplicationController < ActionController::API
   rescue_from StandardError, with: :handle_error
   rescue_from ActiveRecord::RecordNotFound, with: :record_not_found
   rescue_from ActiveRecord::RecordInvalid, with: :record_invalid
+  rescue_from CanCan::AccessDenied, with: :access_denied
+
+  before_action :authenticate_request
+
+  private
+
+  def current_ability
+    @current_ability ||= Ability.new(@current_user_role)
+  end
+
+  def authenticate_request
+    token = request.headers['Authorization']&.split(' ')&.last
+
+    if token
+      begin
+        payload = JWT.decode(token, ENV['JWT_KEY'], true, algorithm: 'HS256')
+        @current_user_role = payload[0]['role']
+      rescue JWT::DecodeError => e
+        render json: { error: 'Invalid or expired token', message: e.message }, status: :unauthorized
+      end
+    else
+      render json: { error: 'Token not provided' }, status: :unauthorized
+    end
+  end
 
   def handle_error(exception)
     # SendErrorToSentryJob.perform_later(exception)
@@ -24,5 +48,12 @@ class ApplicationController < ActionController::API
     logger.error "Error: #{exception.message}"
 
     render json: { error: "Invalid record" }, status: :unprocessable_entity
+  end
+
+  def access_denied
+    Sentry.capture_exception(exception)
+    logger.error "Error: #{exception.message}"
+
+    render json: { error: "Access Denied" }, status: :forbidden
   end
 end

@@ -7,7 +7,8 @@ module Api
 
       # GET /api/v1/categories
       def index
-        pagy, categories = pagy(Category.all, items: params[:per_page] || 10)
+        authorize! :read, Category
+        pagy, categories = pagy(Category.accessible_by(current_ability), items: params[:per_page] || 10)
         render json: {
           data: categories,
           meta: pagy_metadata(pagy)
@@ -16,30 +17,30 @@ module Api
 
       # GET /api/v1/categories/:id
       def show
+        authorize! :read, @category
         render json: { data: @category }, status: :ok
       end
 
       # POST /api/v1/categories
       def create
+        authorize! :create, Category
         category = Category.new(category_params)
-        if category.save
-          render json: { message: 'Category created successfully', data: category }, status: :created
-        else
-          raise ActiveRecord::RecordInvalid
-        end
+        raise ActiveRecord::RecordInvalid unless category.save
+
+        render json: { message: 'Category created successfully', data: category }, status: :created
       end
 
       # PUT /api/v1/categories/:id
       def update
-        if @category.update(category_params)
-          render json: { message: 'Category updated successfully', data: @category }, status: :ok
-        else
-          raise ActiveRecord::RecordInvalid
-        end
+        authorize! :update, @category
+        raise ActiveRecord::RecordInvalid unless @category.update(category_params)
+
+        render json: { message: 'Category updated successfully', data: @category }, status: :ok
       end
 
       # DELETE /api/v1/categories/:id
       def destroy
+        authorize! :destroy, @category
         @category.destroy
         render json: { message: 'Category deleted successfully' }, status: :ok
       end
@@ -47,7 +48,7 @@ module Api
       private
 
       def set_category
-        @category = Category.find(params[:id])
+        @category = Category.accessible_by(current_ability).find(params[:id])
       end
 
       def category_params

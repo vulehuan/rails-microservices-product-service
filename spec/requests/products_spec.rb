@@ -1,6 +1,8 @@
 require 'rails_helper'
 
 RSpec.describe 'Products API', type: :request do
+  let(:admin_token) { jwt_token_for('admin') }
+
   before do
     Category.destroy_all
     Product.destroy_all
@@ -8,7 +10,7 @@ RSpec.describe 'Products API', type: :request do
     @products = create_list(:product, 15)
     @product_id = @products.first.id
   end
-  let(:headers) { { 'Content-Type': 'application/json' } }
+  let(:headers) { { 'Content-Type': 'application/json', 'Authorization': "Bearer #{admin_token}" } }
 
   describe 'GET /api/v1/products' do
     context 'when products exist' do
@@ -34,7 +36,7 @@ RSpec.describe 'Products API', type: :request do
     context "when filtering by category" do
       it "returns products from the specified category" do
         category_id = @products.first.category.id
-        get "/api/v1/products", params: { category_id: category_id }
+        get "/api/v1/products", params: { category_id: category_id }, headers: headers
 
         expect(response).to have_http_status(:ok)
         products = json["data"]

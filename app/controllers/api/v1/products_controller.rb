@@ -7,6 +7,7 @@ module Api
 
       # GET /api/v1/products
       def index
+        authorize! :read, Product
         pagy, products = pagy(filtered_products, items: params[:per_page] || 10)
 
         render json: {
@@ -17,31 +18,30 @@ module Api
 
       # GET /api/v1/products/:id
       def show
+        authorize! :read, @product
         render json: { data: @product }, status: :ok
       end
 
       # POST /api/v1/products
       def create
+        authorize! :create, Product
         product = Product.new(product_params)
+        raise ActiveRecord::RecordInvalid unless product.save
 
-        if product.save
-          render json: { message: 'Product created successfully', data: product }, status: :created
-        else
-          raise ActiveRecord::RecordInvalid
-        end
+        render json: { message: 'Product created successfully', data: product }, status: :created
       end
 
       # PUT/PATCH /api/v1/products/:id
       def update
-        if @product.update(product_params)
-          render json: { message: 'Product updated successfully', data: @product }, status: :ok
-        else
-          raise ActiveRecord::RecordInvalid
-        end
+        authorize! :update, @product
+        raise ActiveRecord::RecordInvalid unless @product.update(product_params)
+
+        render json: { message: 'Product updated successfully', data: @product }, status: :ok
       end
 
       # DELETE /api/v1/products/:id
       def destroy
+        authorize! :destroy, @product
         @product.destroy
         render json: { message: 'Product deleted successfully' }, status: :ok
       end
@@ -50,9 +50,9 @@ module Api
 
       def filtered_products
         if params[:category_id].present?
-          Product.where(category_id: params[:category_id])
+          Product.accessible_by(current_ability).where(category_id: params[:category_id])
         else
-          Product.all
+          Product.accessible_by(current_ability)
         end
       end
 
@@ -61,7 +61,7 @@ module Api
       end
 
       def set_product
-        @product = Product.find(params[:id])
+        @product = Product.accessible_by(current_ability).find(params[:id])
       end
     end
   end

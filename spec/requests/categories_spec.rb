@@ -1,12 +1,14 @@
 require 'rails_helper'
 
 RSpec.describe 'Categories API', type: :request do
+  let(:admin_token) { jwt_token_for('admin') }
+
   before do
     Category.destroy_all
     @categories = create_list(:category, 15)
     @category_id = @categories.first.id
   end
-  let(:headers) { { 'Content-Type': 'application/json' } }
+  let(:headers) { { 'Content-Type': 'application/json', 'Authorization': "Bearer #{admin_token}" } }
 
   describe 'GET /api/v1/categories' do
     context 'when categories exist' do
