@@ -2,6 +2,7 @@ require 'rails_helper'
 
 RSpec.describe 'Products API', type: :request do
   let(:admin_token) { jwt_token_for('admin') }
+  let(:user_token) { jwt_token_for('user') }
 
   before do
     Category.destroy_all
@@ -44,6 +45,17 @@ RSpec.describe 'Products API', type: :request do
           expect(product["category_id"]).to eq(category_id)
         end
       end
+    end
+
+    it "allows user to only see products with status true" do
+      user_headers = { 'Content-Type': 'application/json', 'Authorization': "Bearer #{user_token}" }
+      get "/api/v1/products?per_page=100", headers: user_headers
+      expect(response).to have_http_status(:ok)
+
+      returned_ids = json['data'].map { |category| category['id'] }
+      expected_ids = @products.select(&:status).map(&:id)
+
+      expect(returned_ids).to match_array(expected_ids)
     end
   end
 

@@ -2,6 +2,7 @@ require 'rails_helper'
 
 RSpec.describe 'Categories API', type: :request do
   let(:admin_token) { jwt_token_for('admin') }
+  let(:user_token) { jwt_token_for('user') }
 
   before do
     Category.destroy_all
@@ -29,6 +30,17 @@ RSpec.describe 'Categories API', type: :request do
         expect(json['meta']['page']).to eq(2)
         expect(response).to have_http_status(:ok)
       end
+    end
+
+    it "allows user to only see categories with status true" do
+      user_headers = { 'Content-Type': 'application/json', 'Authorization': "Bearer #{user_token}" }
+      get "/api/v1/categories?per_page=100", headers: user_headers
+      expect(response).to have_http_status(:ok)
+
+      returned_ids = json['data'].map { |category| category['id'] }
+      expected_ids = @categories.select(&:status).map(&:id)
+
+      expect(returned_ids).to match_array(expected_ids)
     end
   end
 
