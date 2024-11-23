@@ -45,7 +45,7 @@ RSpec.describe 'Categories API', type: :request do
       before { get '/api/v1/categories/999999', headers: headers }
 
       it 'returns a not found error' do
-        expect(json['error']).to eq('Category not found')
+        expect(json['error']).to eq('Record not found')
         expect(response).to have_http_status(:not_found)
       end
     end
@@ -66,11 +66,11 @@ RSpec.describe 'Categories API', type: :request do
     end
 
     context 'when the request is invalid' do
-      let(:invalid_attributes) { { status: true }.to_json } # Missing name
+      let(:invalid_attributes) { { status: true }.to_json }
 
       it 'returns an error' do
         post '/api/v1/categories', params: invalid_attributes, headers: headers
-        expect(json['error']).to include("Name can't be blank")
+        expect(json['error']).to include("Invalid record")
         expect(response).to have_http_status(:unprocessable_entity)
       end
     end
@@ -92,7 +92,7 @@ RSpec.describe 'Categories API', type: :request do
       before { put '/api/v1/categories/999', params: valid_attributes, headers: headers }
 
       it 'returns an error' do
-        expect(json['error']).to eq('Category not found')
+        expect(json['error']).to eq('Record not found')
         expect(response).to have_http_status(:not_found)
       end
     end
@@ -113,7 +113,7 @@ RSpec.describe 'Categories API', type: :request do
       before { delete '/api/v1/categories/999', headers: headers }
 
       it 'returns an error' do
-        expect(json['error']).to eq('Category not found')
+        expect(json['error']).to eq('Record not found')
         expect(response).to have_http_status(:not_found)
       end
     end

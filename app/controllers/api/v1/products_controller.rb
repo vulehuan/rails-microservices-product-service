@@ -27,7 +27,7 @@ module Api
         if product.save
           render json: { message: 'Product created successfully', data: product }, status: :created
         else
-          render json: { error: product.errors.full_messages }, status: :unprocessable_entity
+          raise ActiveRecord::RecordInvalid
         end
       end
 
@@ -36,7 +36,7 @@ module Api
         if @product.update(product_params)
           render json: { message: 'Product updated successfully', data: @product }, status: :ok
         else
-          render json: { errors: @product.errors.full_messages }, status: :unprocessable_entity
+          raise ActiveRecord::RecordInvalid
         end
       end
 
@@ -60,10 +60,8 @@ module Api
         params.require(:product).permit(:name, :description, :price, :status, :metadata, :category_id)
       end
 
-      # Set product by finding it from database based on ID
       def set_product
-        @product = Product.find_by(id: params[:id])
-        render json: { error: 'Product not found' }, status: :not_found unless @product
+        @product = Product.find(params[:id])
       end
     end
   end

@@ -25,7 +25,7 @@ module Api
         if category.save
           render json: { message: 'Category created successfully', data: category }, status: :created
         else
-          render json: { error: category.errors.full_messages }, status: :unprocessable_entity
+          raise ActiveRecord::RecordInvalid
         end
       end
 
@@ -34,7 +34,7 @@ module Api
         if @category.update(category_params)
           render json: { message: 'Category updated successfully', data: @category }, status: :ok
         else
-          render json: { error: @category.errors.full_messages }, status: :unprocessable_entity
+          raise ActiveRecord::RecordInvalid
         end
       end
 
@@ -47,8 +47,7 @@ module Api
       private
 
       def set_category
-        @category = Category.find_by(id: params[:id])
-        render json: { error: 'Category not found' }, status: :not_found unless @category
+        @category = Category.find(params[:id])
       end
 
       def category_params

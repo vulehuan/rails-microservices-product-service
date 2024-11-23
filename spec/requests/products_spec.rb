@@ -61,7 +61,7 @@ RSpec.describe 'Products API', type: :request do
       before { get '/api/v1/products/999999', headers: headers }
 
       it 'returns a not found error' do
-        expect(json['error']).to eq('Product not found')
+        expect(json['error']).to eq('Record not found')
         expect(response).to have_http_status(:not_found)
       end
     end
@@ -87,7 +87,7 @@ RSpec.describe 'Products API', type: :request do
 
       it 'returns an error' do
         post '/api/v1/products', params: invalid_attributes, headers: headers
-        expect(json['error']).to include("Name can't be blank", 'Price must be greater than or equal to 0')
+        expect(json['error']).to include('Invalid record')
         expect(response).to have_http_status(:unprocessable_entity)
       end
     end
@@ -109,7 +109,7 @@ RSpec.describe 'Products API', type: :request do
       before { put '/api/v1/products/999', params: valid_attributes, headers: headers }
 
       it 'returns an error' do
-        expect(json['error']).to eq('Product not found')
+        expect(json['error']).to eq('Record not found')
         expect(response).to have_http_status(:not_found)
       end
     end
@@ -130,7 +130,7 @@ RSpec.describe 'Products API', type: :request do
       before { delete '/api/v1/products/999', headers: headers }
 
       it 'returns an error' do
-        expect(json['error']).to eq('Product not found')
+        expect(json['error']).to eq('Record not found')
         expect(response).to have_http_status(:not_found)
       end
     end
