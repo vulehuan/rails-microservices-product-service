@@ -50,7 +50,7 @@ class ApplicationController < ActionController::API
     render json: { error: "Invalid record" }, status: :unprocessable_entity
   end
 
-  def access_denied
+  def access_denied(exception)
     Sentry.capture_exception(exception)
     logger.error "Error: #{exception.message}"
 
