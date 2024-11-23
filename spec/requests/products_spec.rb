@@ -105,6 +105,14 @@ RSpec.describe 'Products API', type: :request do
       end
     end
 
+    context 'when product is invalid' do
+      before { put "/api/v1/products/#{@product_id}", params: {name: ''}.to_json, headers: headers }
+      it 'raises an ActiveRecord::RecordInvalid error' do
+        expect(json['error']).to include('Invalid record')
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
+    end
+
     context 'when the product does not exist' do
       before { put '/api/v1/products/999', params: valid_attributes, headers: headers }
 

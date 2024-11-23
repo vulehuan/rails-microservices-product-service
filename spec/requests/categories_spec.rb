@@ -88,6 +88,14 @@ RSpec.describe 'Categories API', type: :request do
       end
     end
 
+    context 'when category is invalid' do
+      before { put "/api/v1/categories/#{@category_id}", params: {name: ''}.to_json, headers: headers }
+      it 'raises an ActiveRecord::RecordInvalid error' do
+        expect(json['error']).to include('Invalid record')
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
+    end
+
     context 'when the category does not exist' do
       before { put '/api/v1/categories/999', params: valid_attributes, headers: headers }
 
