@@ -37,7 +37,11 @@ This is a Ruby on Rails API-mode application that handles product-related operat
 - Rails 7.x
 - PostgreSQL
 
-### Installation
+### Installation - Running this service independently
+
+We don't recommend this approach. You should refer to the installation guide in the rails-microservices-demo repository at https://github.com/vulehuan/rails-microservices-demo for startup instructions. After pulling rails-microservices-demo, you can run `docker compose up product-service -d`.
+
+We'll still keep the instructions below for running this service independently for your reference.
 
 1. Clone the repository:
 ```bash
