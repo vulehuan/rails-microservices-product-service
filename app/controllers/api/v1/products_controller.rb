@@ -7,7 +7,7 @@ module Api
 
       # GET /api/v1/products
       def index
-        pagy, products = pagy(Product.all, items: params[:per_page] || 10)
+        pagy, products = pagy(filtered_products, items: params[:per_page] || 10)
 
         render json: {
           data: products,
@@ -47,6 +47,14 @@ module Api
       end
 
       private
+
+      def filtered_products
+        if params[:category_id].present?
+          Product.where(category_id: params[:category_id])
+        else
+          Product.all
+        end
+      end
 
       def product_params
         params.require(:product).permit(:name, :description, :price, :status, :metadata, :category_id)
