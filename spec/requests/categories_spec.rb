@@ -30,6 +30,27 @@ RSpec.describe 'Categories API', type: :request do
     end
   end
 
+  describe 'GET /api/v1/categories/:id' do
+    context 'when the category exists' do
+      before { get "/api/v1/categories/#{@category_id}", headers: headers }
+
+      it 'returns the category' do
+        expect(json['data']['id']).to eq(@category_id)
+        expect(json['data']['name']).to eq(@categories.first.name)
+        expect(response).to have_http_status(:ok)
+      end
+    end
+
+    context 'when the category does not exist' do
+      before { get '/api/v1/categories/999999', headers: headers }
+
+      it 'returns a not found error' do
+        expect(json['error']).to eq('Category not found')
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+  end
+
   describe 'POST /api/v1/categories' do
     let(:valid_attributes) { { name: 'New Category', status: true }.to_json }
 
