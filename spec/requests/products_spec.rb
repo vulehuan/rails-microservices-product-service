@@ -30,6 +30,19 @@ RSpec.describe 'Products API', type: :request do
         expect(response).to have_http_status(:ok)
       end
     end
+
+    context "when filtering by category" do
+      it "returns products from the specified category" do
+        category_id = @products.first.category.id
+        get "/api/v1/products", params: { category_id: category_id }
+
+        expect(response).to have_http_status(:ok)
+        products = json["data"]
+        products.each do |product|
+          expect(product["category_id"]).to eq(category_id)
+        end
+      end
+    end
   end
 
   describe 'GET /api/v1/products/:id' do
