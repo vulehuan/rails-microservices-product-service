@@ -30,6 +30,7 @@ gem "bootsnap", require: false
 # gem "rack-cors"
 
 gem 'dotenv-rails'
+gem 'pagy'
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
@@ -40,6 +41,11 @@ group :development, :test do
 
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
+
+  gem 'faker'
+  gem 'rspec-rails'
+  gem 'factory_bot_rails'
+  gem 'database_cleaner-active_record'
 end
 
 
