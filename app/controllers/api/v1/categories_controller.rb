@@ -3,7 +3,7 @@ module Api
     class CategoriesController < ApplicationController
       include Pagy::Backend
 
-      before_action :set_category, only: [:update, :destroy]
+      before_action :set_category, only: [:show, :update, :destroy]
 
       # GET /api/v1/categories
       def index
@@ -12,6 +12,11 @@ module Api
           data: categories,
           meta: pagy_metadata(pagy)
         }, status: :ok
+      end
+
+      # GET /api/v1/categories/:id
+      def show
+        render json: { data: @category }, status: :ok
       end
 
       # POST /api/v1/categories
