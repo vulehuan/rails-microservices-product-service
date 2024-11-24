@@ -6,6 +6,7 @@ FactoryBot.define do
     price { 100.0 }
     status { [true, false].sample }
     metadata { { param_1: "Taylor" } }
+    stock_quantity { rand(10..1000) }
     association :category
   end
 end
