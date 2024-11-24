@@ -136,7 +136,7 @@ RSpec.describe 'Products API', type: :request do
     end
 
     context 'when product is invalid' do
-      before { put "/api/v1/products/#{@product_id}", params: {name: ''}.to_json, headers: headers }
+      before { put "/api/v1/products/#{@product_id}", params: { name: '' }.to_json, headers: headers }
       it 'raises an ActiveRecord::RecordInvalid error' do
         expect(json['error']).to include('Invalid record')
         expect(response).to have_http_status(:unprocessable_entity)
@@ -170,6 +170,104 @@ RSpec.describe 'Products API', type: :request do
       it 'returns an error' do
         expect(json['error']).to eq('Record not found')
         expect(response).to have_http_status(:not_found)
+      end
+    end
+  end
+
+  describe "PATCH #update_stock_batch" do
+    context 'when all products have enough stock' do
+      it 'reduces the stock_quantity correctly for each product' do
+        products_data = [
+          { product_id: @products.first.id, quantity: 2 },
+          { product_id: @products.second.id, quantity: 3 }
+        ]
+        new_quantity1 = @products.first.stock_quantity - 2
+        new_quantity2 = @products.second.stock_quantity - 3
+
+        patch "/api/v1/products/update_stock/batch", params: { products: products_data }.to_json, headers: headers
+
+        @products.first.reload
+        @products.second.reload
+
+        expect(@products.first.stock_quantity).to eq(new_quantity1)
+        expect(@products.second.stock_quantity).to eq(new_quantity2)
+
+        expect(response).to have_http_status(:ok)
+        expect(JSON.parse(response.body)['success']).to eq(true)
+      end
+    end
+
+    context 'when a product has insufficient stock' do
+      it 'sets stock_quantity to 0 if it goes below 0' do
+        products_data = [
+          { product_id: @products.first.id, quantity: 9999 },
+          { product_id: @products.second.id, quantity: 9999 }
+        ]
+
+        patch "/api/v1/products/update_stock/batch", params: { products: products_data }.to_json, headers: headers
+
+        @products.first.reload
+        @products.second.reload
+
+        expect(@products.first.stock_quantity).to eq(0)
+        expect(@products.second.stock_quantity).to eq(0)
+
+        expect(response).to have_http_status(:ok)
+        expect(JSON.parse(response.body)['success']).to eq(true)
+      end
+    end
+
+    context 'when product_id is invalid' do
+      it 'returns 404 for invalid product_id' do
+        products_data = [
+          { product_id: 999999, quantity: 5 }
+        ]
+
+        patch "/api/v1/products/update_stock/batch", params: { products: products_data }.to_json, headers: headers
+
+        expect(response).to have_http_status(:not_found)
+        expect(JSON.parse(response.body)['error']).to eq('Record not found')
+      end
+    end
+  end
+
+  describe "PATCH #update_stock" do
+    context "when the quantity is valid" do
+      it "reduces stock_quantity correctly" do
+        patch "/api/v1/products/#{@product_id}/update_stock",
+              params: { quantity: 3 }.to_json, headers: headers
+        new_quantity = @products.first.stock_quantity - 3
+        @products.first.reload
+        expect(@products.first.stock_quantity).to eq(new_quantity)
+        expect(response).to have_http_status(:ok)
+        expect(json).to eq({ "success" => true })
+      end
+    end
+
+    context "when the quantity is greater than stock_quantity" do
+      it "sets stock_quantity to 0" do
+        patch "/api/v1/products/#{@product_id}/update_stock", params: { quantity: 9999 }.to_json, headers: headers
+        @products.first.reload
+        expect(@products.first.stock_quantity).to eq(0)
+        expect(response).to have_http_status(:ok)
+        expect(JSON.parse(response.body)).to eq({ "success" => true })
+      end
+    end
+
+    context "when the product does not exist" do
+      it "returns a 404 not found error" do
+        patch "/api/v1/products/9999/update_stock", params: { quantity: 10 }.to_json, headers: headers
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    context "when the quantity is missing" do
+      it "does not update stock_quantity and returns a 400 error" do
+        patch "/api/v1/products/#{@product_id}/update_stock", params: {}.to_json, headers: headers
+        quantity = @products.first.stock_quantity
+        @products.first.reload
+        expect(@products.first.stock_quantity).to eq(quantity)
+        expect(response).to have_http_status(:bad_request)
       end
     end
   end

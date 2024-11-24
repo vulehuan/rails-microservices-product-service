@@ -11,6 +11,9 @@ Rails.application.routes.draw do
     namespace :v1 do
       resources :categories, only: [:index, :show, :create, :update, :destroy]
       resources :products, only: [:index, :show, :create, :update, :destroy]
+      # Todo: Use Event-Driven Architecture (message queue such as RabbitMQ, Kafka, Redis or Amazon SNS & Amazon SQS) in practice
+      patch "/products/:id/update_stock", to: "products#update_stock"
+      patch "/products/update_stock/batch", to: "products#update_stock_batch"
     end
   end
 end

@@ -84,4 +84,8 @@ RSpec.configure do |config|
       example.run
     end
   end
+
+  config.before(:each, type: :request) do
+    host! "product.local"
+  end
 end

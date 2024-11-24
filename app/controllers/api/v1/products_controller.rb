@@ -3,7 +3,7 @@ module Api
     class ProductsController < ApplicationController
       include Pagy::Backend
 
-      before_action :set_product, only: [:show, :update, :destroy]
+      before_action :set_product, only: [:show, :update, :destroy, :update_stock]
 
       # GET /api/v1/products
       def index
@@ -47,6 +47,31 @@ module Api
         authorize! :destroy, @product
         @product.destroy
         render json: { message: 'Product deleted successfully' }, status: :ok
+      end
+
+      # Todo: Use Event-Driven Architecture (message queue such as RabbitMQ, Kafka, Redis or Amazon SNS & Amazon SQS) in practice
+      # PATCH /api/v1/products/:id/update_stock
+      def update_stock
+        return render json: { success: false }, status: :bad_request if params[:quantity].to_i <= 0
+
+        @product.stock_quantity -= params[:quantity].to_i
+        @product.stock_quantity = 0 if @product.stock_quantity < 0
+        @product.save!
+        render json: { success: true }, status: :ok
+      end
+
+      # Todo: Use Event-Driven Architecture (message queue such as RabbitMQ, Kafka, Redis or Amazon SNS & Amazon SQS) in practice
+      # PATCH /api/v1/products/update_stock_batch
+      def update_stock_batch
+        params[:products].each do |product_data|
+          product = Product.find(product_data[:product_id])
+          quantity = product_data[:quantity].to_i
+          product.stock_quantity -= quantity
+          product.stock_quantity = 0 if product.stock_quantity < 0
+          product.save!
+        end
+
+        render json: { success: true }, status: :ok
       end
 
       private
