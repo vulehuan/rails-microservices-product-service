@@ -8,7 +8,7 @@ module Api
       # GET /api/v1/categories
       def index
         authorize! :read, Category
-        pagy, categories = pagy(Category.accessible_by(current_ability), items: params[:per_page] || 10)
+        pagy, categories = pagy(Category.accessible_by(current_ability), limit: params[:per_page] || 10)
         render json: {
           data: ActiveModelSerializers::SerializableResource.new(categories).as_json,
           meta: pagy_metadata(pagy)

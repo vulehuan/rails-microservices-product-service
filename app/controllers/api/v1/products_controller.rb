@@ -8,7 +8,7 @@ module Api
       # GET /api/v1/products
       def index
         authorize! :read, Product
-        pagy, products = pagy(filtered_products, items: params[:per_page] || 10)
+        pagy, products = pagy(filtered_products, limit: params[:per_page] || 10)
 
         render json: {
           data: ActiveModelSerializers::SerializableResource.new(products,
