@@ -1,5 +1,5 @@
 # frozen_string_literal: true
 
 class ProductCollectionSerializer < ActiveModel::Serializer
-  attributes :id, :category_id, :name, :price, :stock_quantity, :status
+  attributes :id, :image, :category_id, :name, :price, :stock_quantity, :status
 end
