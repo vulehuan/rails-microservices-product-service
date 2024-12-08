@@ -1,98 +1,141 @@
 require 'rails_helper'
+require 'swagger_helper'
 
 RSpec.describe 'Products API', type: :request do
   let(:admin_token) { jwt_token_for('admin') }
   let(:user_token) { jwt_token_for('user') }
 
   before do
-    Category.destroy_all
-    Product.destroy_all
     @categories = create_list(:category, 5)
     @products = create_list(:product, 15)
     @product_id = @products.first.id
   end
   let(:headers) { { 'Content-Type': 'application/json', 'Authorization': "Bearer #{admin_token}" } }
 
-  describe 'GET /api/v1/products' do
-    context 'when products exist' do
-      before { get '/api/v1/products', headers: headers }
+  path '/api/v1/products' do
+    get 'Retrieve the list of products with admin role' do
+      tags 'Products'
+      produces 'application/json'
+      parameter name: :page, in: :query, type: :integer, required: false, description: 'Page number'
+      parameter name: :per_page, in: :query, type: :integer, required: false, description: 'Items per page'
+      parameter name: :category_id, in: :query, type: :integer, required: false, description: 'Category ID'
 
-      it 'returns products with pagination metadata' do
-        expect(json['data'].size).to eq(10) # Default per_page is 10
-        expect(json['meta']).to include('page', 'count', 'pages')
-        expect(response).to have_http_status(:ok)
+      security [ { bearer_auth: [] } ]
+      let(:Authorization) { "Bearer #{admin_token}" }
+
+      response '200', 'Products retrieved without page query' do
+        let(:page) { nil }
+        schema '$ref' => '#/components/schemas/ProductsResponse'
+        run_test! do |response|
+          json_response = Oj.load(response.body)
+          aggregate_failures 'returns products with the correct items count' do
+            expect(json_response['data'].size).to eq(10)
+          end
+
+          aggregate_failures "does not include description in the response" do
+            expect(json_response['data'].first).not_to have_key('description')
+          end
+
+          aggregate_failures "does not include lock_version in the response" do
+            expect(json_response['data'].first).not_to have_key('lock_version')
+          end
+        end
       end
 
-      it "does not include description in the response" do
-        expect(json['data'].first).not_to have_key('description')
+      response '200', 'Products when fetching a specific page' do
+        let(:page) { 2 }
+        let(:per_page) { 5 }
+        schema '$ref' => '#/components/schemas/ProductsResponse'
+        run_test! do |response|
+          json_response = Oj.load(response.body)
+          aggregate_failures 'returns correct products for the page' do
+            expect(json_response['data'].size).to eq(5)
+            expect(json_response['meta']['page']).to eq(2)
+            expect(response).to have_http_status(:ok)
+          end
+        end
       end
 
-      it "does not include lock_version in the response" do
-        expect(json['data'].first).not_to have_key('lock_version')
-      end
-    end
+      response '200', 'Products when filtering by category' do
+        let(:category_id) { @products.first.category.id }
+        schema '$ref' => '#/components/schemas/ProductsResponse'
+        run_test! do |response|
+          json_response = Oj.load(response.body)
+          aggregate_failures "returns products from the specified category" do
+            category_id = @products.first.category.id
 
-    context 'when fetching a specific page' do
-      before { get '/api/v1/products?page=2&per_page=5', headers: headers }
-
-      it 'returns correct products for the page' do
-        expect(json['data'].size).to eq(5)
-        expect(json['meta']['page']).to eq(2)
-        expect(response).to have_http_status(:ok)
-      end
-    end
-
-    context "when filtering by category" do
-      it "returns products from the specified category" do
-        category_id = @products.first.category.id
-        get "/api/v1/products", params: { category_id: category_id }, headers: headers
-
-        expect(response).to have_http_status(:ok)
-        products = json["data"]
-        products.each do |product|
-          expect(product["category_id"]).to eq(category_id)
+            expect(response).to have_http_status(:ok)
+            products = json_response["data"]
+            products.each do |product|
+              expect(product["category_id"]).to eq(category_id)
+            end
+          end
         end
       end
     end
 
-    it "allows user to only see products with status true" do
-      user_headers = { 'Content-Type': 'application/json', 'Authorization': "Bearer #{user_token}" }
-      get "/api/v1/products?per_page=100", headers: user_headers
-      expect(response).to have_http_status(:ok)
+    get 'Retrieve the list of products' do
+      tags 'Products'
+      produces 'application/json'
 
-      returned_ids = json['data'].map { |category| category['id'] }
-      expected_ids = @products.select(&:status).map(&:id)
+      security [ { bearer_auth: [] } ]
+      let(:Authorization) { "Bearer #{user_token}" }
+      response '200', 'Product list retrieved successfully' do
+        let(:per_page) { 100 }
+        schema '$ref' => '#/components/schemas/ProductsResponse'
+        run_test! do |response|
+          json_response = Oj.load(response.body)
+          aggregate_failures "allows user to only see products with status true" do
+            expect(response).to have_http_status(:ok)
 
-      expect(returned_ids).to match_array(expected_ids)
+            returned_ids = json_response['data'].map { |category| category['id'] }
+            expected_ids = @products.select(&:status).map(&:id)
+
+            expect(returned_ids).to match_array(expected_ids)
+          end
+        end
+      end
     end
   end
 
-  describe 'GET /api/v1/products/:id' do
-    context 'when the product exists' do
-      before { get "/api/v1/products/#{@product_id}", headers: headers }
+  path '/api/v1/products/{id}' do
+    get 'Retrieve product details' do
+      tags 'Products'
+      produces 'application/json'
+      parameter name: :id, in: :path, type: :integer, description: 'ID of the product'
 
-      it 'returns the product' do
-        expect(json['data']['id']).to eq(@product_id)
-        expect(json['data']['name']).to eq(@products.first.name)
-        expect(json['data']['category_id']).to eq(@products.first.category_id)
-        expect(response).to have_http_status(:ok)
+      security [ { bearer_auth: [] } ]
+      let(:Authorization) { "Bearer #{admin_token}" }
+      let(:id) { @product_id }
+      response '200', 'Product details retrieved successfully' do
+        schema '$ref' => '#/components/schemas/Product'
+        run_test! do |response|
+          json_response = Oj.load(response.body)
+          aggregate_failures 'returns the product' do
+            expect(json_response['data']['id']).to eq(@product_id)
+            expect(json_response['data']['name']).to eq(@products.first.name)
+            expect(json_response['data']['category_id']).to eq(@products.first.category_id)
+          end
+
+          aggregate_failures "does not include lock_version in the response" do
+            expect(json_response['data']).not_to have_key('lock_version')
+          end
+
+          aggregate_failures "includes description in the response" do
+            expect(json_response['data']).to have_key('description')
+          end
+        end
       end
 
-      it "does not include lock_version in the response" do
-        expect(json['data']).not_to have_key('lock_version')
-      end
-
-      it "includes description in the response" do
-        expect(json['data']).to have_key('description')
-      end
-    end
-
-    context 'when the product does not exist' do
-      before { get '/api/v1/products/999999', headers: headers }
-
-      it 'returns a not found error' do
-        expect(json['error']).to eq('Record not found')
-        expect(response).to have_http_status(:not_found)
+      response '404', 'Product does not exist' do
+        schema '$ref' => '#/components/schemas/RecordNotFound'
+        let(:id) { 999999 }
+        run_test! do |response|
+          json_response = Oj.load(response.body)
+          aggregate_failures 'returns a not found error' do
+            expect(json_response['error']).to eq('Record not found')
+          end
+        end
       end
     end
   end
