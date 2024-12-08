@@ -1,19 +1,17 @@
 module Api
   module V1
     class ProductsController < ApplicationController
-      include Pagy::Backend
-
       before_action :set_product, only: [:show, :update, :destroy, :update_stock]
 
       # GET /api/v1/products
       def index
         authorize! :read, Product
-        pagy, products = pagy(filtered_products, limit: params[:per_page] || 10)
+        pagy, products = pagy(filtered_products, limit: per_page, page: current_page)
 
         render json: {
           data: ActiveModelSerializers::SerializableResource.new(products,
                                                                  each_serializer: ProductCollectionSerializer).as_json,
-          meta: pagy_metadata(pagy)
+          meta: pagination_meta(pagy)
         }
       end
 

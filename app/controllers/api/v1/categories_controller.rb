@@ -1,17 +1,15 @@
 module Api
   module V1
     class CategoriesController < ApplicationController
-      include Pagy::Backend
-
       before_action :set_category, only: [:show, :update, :destroy]
 
       # GET /api/v1/categories
       def index
         authorize! :read, Category
-        pagy, categories = pagy(Category.accessible_by(current_ability), limit: params[:per_page] || 10)
+        pagy, categories = pagy(Category.accessible_by(current_ability), limit: per_page, page: current_page)
         render json: {
           data: ActiveModelSerializers::SerializableResource.new(categories).as_json,
-          meta: pagy_metadata(pagy)
+          meta: pagination_meta(pagy)
         }, status: :ok
       end
 

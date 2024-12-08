@@ -1,10 +1,38 @@
 class ApplicationController < ActionController::API
+  include Pagy::Backend
+  MAX_LIMIT = 1000
+  DEFAULT_PER_PAGE = 10
+
   rescue_from StandardError, with: :handle_error
   rescue_from ActiveRecord::RecordNotFound, with: :record_not_found
   rescue_from ActiveRecord::RecordInvalid, with: :record_invalid
   rescue_from CanCan::AccessDenied, with: :access_denied
+  rescue_from Pagy::OverflowError do
+    render json: { error: "Invalid page number" }, status: :bad_request
+  end
 
   before_action :authenticate_request
+
+  def current_page
+    page = params[:page].to_i
+    page > 0 ? page : 1
+  end
+
+  def per_page
+    limit = params[:limit].to_i
+    limit = MAX_LIMIT if limit > MAX_LIMIT
+    limit > 0 ? limit : DEFAULT_PER_PAGE
+  end
+
+  def pagination_meta(pagy)
+    meta_data = pagy_metadata(pagy)
+    {
+      total_pages: meta_data[:pages],
+      page: meta_data[:page],
+      total_result: meta_data[:count],
+      next_page: meta_data[:next]
+    }
+  end
 
   private
 
