@@ -77,6 +77,8 @@ GEM
       minitest (>= 5.1)
       securerandom (>= 0.3)
       tzinfo (~> 2.0, >= 2.0.5)
+    addressable (2.8.7)
+      public_suffix (>= 2.0.2, < 7.0)
     ast (2.4.2)
     base64 (0.2.0)
     benchmark (0.4.0)
@@ -124,6 +126,9 @@ GEM
       rdoc (>= 4.0.0)
       reline (>= 0.4.2)
     json (2.8.2)
+    json-schema (5.1.1)
+      addressable (~> 2.8)
+      bigdecimal (~> 3.1)
     jsonapi-renderer (0.2.2)
     jwt (2.9.3)
       base64
@@ -163,6 +168,10 @@ GEM
       racc (~> 1.4)
     nokogiri (1.16.7-x86_64-linux)
       racc (~> 1.4)
+    oj (3.16.7)
+      bigdecimal (>= 3.0)
+      ostruct (>= 0.2)
+    ostruct (0.6.1)
     pagy (9.3.1)
     parallel (1.26.3)
     parser (3.3.6.0)
@@ -171,6 +180,7 @@ GEM
     pg (1.5.9)
     psych (5.2.0)
       stringio
+    public_suffix (6.0.1)
     puma (6.5.0)
       nio4r (~> 2.0)
     racc (1.8.1)
@@ -234,6 +244,17 @@ GEM
       rspec-mocks (~> 3.13)
       rspec-support (~> 3.13)
     rspec-support (3.13.1)
+    rswag-api (2.16.0)
+      activesupport (>= 5.2, < 8.1)
+      railties (>= 5.2, < 8.1)
+    rswag-specs (2.16.0)
+      activesupport (>= 5.2, < 8.1)
+      json-schema (>= 2.2, < 6.0)
+      railties (>= 5.2, < 8.1)
+      rspec-core (>= 2.14)
+    rswag-ui (2.16.0)
+      actionpack (>= 5.2, < 8.1)
+      railties (>= 5.2, < 8.1)
     rubocop (1.68.0)
       json (~> 2.3)
       language_server-protocol (>= 3.17.0)
@@ -307,11 +328,15 @@ DEPENDENCIES
   factory_bot_rails
   faker
   jwt
+  oj
   pagy
   pg (~> 1.1)
   puma (>= 5.0)
   rails (~> 7.2.2)
   rspec-rails
+  rswag-api
+  rswag-specs
+  rswag-ui
   rubocop-rails-omakase
   sentry-rails
   simplecov

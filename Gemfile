@@ -33,7 +33,10 @@ gem 'active_model_serializers'
 gem 'cancancan'
 gem 'dotenv-rails'
 gem 'jwt'
+gem 'oj'
 gem 'pagy'
+gem 'rswag-api'
+gem 'rswag-ui'
 gem 'sentry-rails'
 
 group :development, :test do
@@ -46,10 +49,11 @@ group :development, :test do
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
 
-  gem 'faker'
-  gem 'rspec-rails'
-  gem 'factory_bot_rails'
   gem 'database_cleaner-active_record'
+  gem 'faker'
+  gem 'factory_bot_rails'
+  gem 'rspec-rails'
+  gem 'rswag-specs'
   gem 'simplecov'
 end
 
