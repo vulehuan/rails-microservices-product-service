@@ -30,6 +30,9 @@ This is a Ruby on Rails API-mode application that handles product-related operat
 - RSpec as the testing framework
 - SimpleCov for code coverage reporting
 
+### Documenting
+- rswag for API Docs
+
 ## Getting Started
 
 ### Prerequisites

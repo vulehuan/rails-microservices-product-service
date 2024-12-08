@@ -1,0 +1,142 @@
+---
+openapi: 3.0.1
+info:
+  title: API V1
+  version: v1
+paths:
+  "/api/v1/products":
+    get:
+      summary: Retrieve the list of products
+      tags:
+      - Products
+      parameters:
+      - name: page
+        in: query
+        required: false
+        description: Page number
+        schema:
+          type: integer
+      - name: per_page
+        in: query
+        required: false
+        description: Items per page
+        schema:
+          type: integer
+      - name: category_id
+        in: query
+        required: false
+        description: Category ID
+        schema:
+          type: integer
+      security:
+      - bearer_auth: []
+      responses:
+        '200':
+          description: Product list retrieved successfully
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ProductsResponse"
+  "/api/v1/products/{id}":
+    get:
+      summary: Retrieve product details
+      tags:
+      - Products
+      parameters:
+      - name: id
+        in: path
+        description: ID of the product
+        required: true
+        schema:
+          type: integer
+      security:
+      - bearer_auth: []
+      responses:
+        '200':
+          description: Product details retrieved successfully
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Product"
+        '404':
+          description: Product does not exist
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/RecordNotFound"
+servers:
+- url: http://{defaultHost}
+  variables:
+    defaultHost:
+      default: product.local
+components:
+  securitySchemes:
+    bearer_auth:
+      type: http
+      scheme: bearer
+      bearer_format: JWT
+  schemas:
+    RecordNotFound:
+      type: object
+      properties:
+        error:
+          type: string
+    PaginationMeta:
+      type: object
+      properties:
+        total_pages:
+          type: integer
+        page:
+          type: integer
+        total_result:
+          type: integer
+        next_page:
+          type:
+          - integer
+          - 'null'
+    ProductCollection:
+      type: array
+      items:
+        properties:
+          id:
+            type: integer
+          image:
+            type: string
+          category_id:
+            type: integer
+          name:
+            type: string
+          price:
+            type: number
+          stock_quantity:
+            type: integer
+          status:
+            type: boolean
+    ProductsResponse:
+      type: object
+      properties:
+        data:
+          "$ref": "#/components/schemas/ProductCollection"
+        meta:
+          "$ref": "#/components/schemas/PaginationMeta"
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+        image:
+          type: string
+        category_id:
+          type: integer
+        name:
+          type: string
+        price:
+          type: number
+        stock_quantity:
+          type: integer
+        status:
+          type: boolean
+        description:
+          type: string
+        metadata:
+          type: object
